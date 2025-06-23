@@ -4,18 +4,18 @@ import numpy as np
 
 def initialize_instrument(resource_name):
     rm = pyvisa.ResourceManager()
-    inst = rm.open_resource(resource_name)
+    inst = rm.open_resource(resource_name, timeout=10000)
     
     # Identification
     print("Connected to:", inst.query("*IDN?").strip())
     
-    # Optional: reset and clear
-    inst.write("*RST")  # Reset the DMM
-    inst.write("*CLS")  # Clear status
+    # Optional: reset and clear --> when I didn't comment these out, it was giving me inaccurate readings
+    #inst.write("*RST")  # Reset the DMM
+    #inst.write("*CLS")  # Clear status
 
     # Set measurement mode to DC current
     inst.write("FUNC 'CURR:DC'")      # Set function to DC current
-    inst.write("CURR:DC:RANG:AUTO ON")  # Enable auto-ranging (or use e.g. CURR:DC:RANG 0.05 for 50mA)
+    inst.write("CURR:DC:RANG 0.006")  # Enable auto-ranging (or use e.g. CURR:DC:RANG 0.05 for 50mA)
 
     return inst
 
@@ -41,11 +41,11 @@ def main():
     # Replace with the VISA resource name for your device (use rm.list_resources() to find it)
     # Could be something like 'USB0::0xF4EC::0xEE38::SDM34xxxxxxx::INSTR' or 'TCPIP0::192.168.1.123::INSTR'
     # Run pyvisa.ResourceManager().list_resources() to find it and it will change if using LAN connection over USB
-    resource_name = "USB0::0xF4EC::0xEE38::SDM34XXXXXXX::INSTR"
+    resource_name = "USB0::0xF4EC::0x1205::SDM34HBQ801881::INSTR"
 
     try:
         inst = initialize_instrument(resource_name)
-        precise_current(inst, num_samples=5, delay=1.0)
+        precise_current(inst, 5, 1.0)
     except Exception as e:
         print("Error communicating with instrument:", e)
 
